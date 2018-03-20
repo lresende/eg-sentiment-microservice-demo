@@ -15,18 +15,19 @@ sentiment_provider.start()
 class SentimentResource(Resource):
 
     def _html_response(self, data):
-        resp = Response(data, mimetype='text/html', headers=None)
+        resp = Response(data, mimetype='text/plain', headers=None)
         resp.status_code = 200
         return resp
 
     def get(self, business):
         global sentiment_provider
-        result = sentiment_provider.calculate_sentiment(business)
-        result = result.replace('\n', '<br/>')
-        result = ''.join(result)
+        business_detail = sentiment_provider.get_business_details(business)
+        sentiment = sentiment_provider.get_sentiment(business)
+
+        result = 'Business Detail:\n{}\n\nSentiment\n{}'.format(business_detail, sentiment)
 
         return self._html_response(str(result))
-        #return result
+
 
 
 app = Flask('Sentiment micro service')

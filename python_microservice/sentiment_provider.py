@@ -29,10 +29,17 @@ class SentimentProvider:
         #self.kernel.execute("reviews = spark.read.option('header', 'true').option('inferSchema', 'true').csv('file:///opt/data/yelp_review.csv')")
         #self.kernel.execute("business_reviews = business_small.join(reviews, business_small.business_id == reviews.business_id, 'leftouter')")
 
+        self.kernel.execute("city_business = spark.read.parquet('yelp/business')")
         self.kernel.execute("city_business_reviews = spark.read.parquet('yelp/reviews')")
         print('>>> Data load finished')
 
-    def calculate_sentiment(self, business_id):
+    def get_business_details(self, business_id):
+        result = self.kernel.execute("city_business.filter(city_business.business_id == '{}').select('business_id', 'name', 'city', 'state').show(100, False)".format(business_id))
+
+        print('>>> business details is ready')
+        return result
+
+    def get_sentiment(self, business_id):
         code = []
         code.append("from pyspark.sql.functions import udf, col")
         code.append("from pyspark.sql.types import DoubleType")
@@ -48,7 +55,7 @@ class SentimentProvider:
 
         code.append("sentiment = city_business_reviews.filter(city_business_reviews.business_id == '{}').withColumn('sentiment', afinn_score(col('text')))".format(business_id))
 
-        code.append("sentiment.select('date', 'text', 'sentiment').show()")
+        code.append("sentiment.select('date', 'text', 'sentiment').show(100)")
 
         sentiment = self.kernel.execute('\n'.join(code))
 
