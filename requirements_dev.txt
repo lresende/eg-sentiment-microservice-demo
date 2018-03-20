@@ -8,4 +8,5 @@ coverage==4.5.1
 Sphinx==1.7.0
 tornado>=4.5<5
 requests>=2.8,<3.0
+flask-restful==0.3.6
 

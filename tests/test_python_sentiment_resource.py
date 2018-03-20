@@ -7,7 +7,7 @@
 import unittest
 from click.testing import CliRunner
 
-from python_microservice import python_microservice
+from python_microservice import sentiment_resource
 from python_microservice import cli
 
 
