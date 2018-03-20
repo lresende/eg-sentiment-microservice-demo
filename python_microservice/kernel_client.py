@@ -9,7 +9,7 @@ from tornado.ioloop import IOLoop
 from tornado.httpclient import HTTPRequest
 import requests
 
-DEFAULT_TIMEOUT = 60
+DEFAULT_TIMEOUT = 60 * 60
 DEFAULT_USERNAME = 'anonymous'
 
 
@@ -85,16 +85,19 @@ class Kernel:
         response_type = None
         response = []
 
+        print('')
+        print('Submitting code:\n{}'.format(code))
+        print('')
 
         try:
             ws_req = HTTPRequest(self.kernel_api_endpoint)
             kernel_socket_future = websocket_connect(ws_req)
             kernel_socket = IOLoop.current().run_sync(lambda: kernel_socket_future, timeout)
 
-            print('Sending message to kernel')
+            #print('Sending message to kernel')
             msg_id = uuid4().hex
             message = self.__create_execute_request(msg_id, code)
-            pprint(message)
+            #pprint(message)
             future = kernel_socket.write_message(message)
             response_message = IOLoop.current().run_sync(lambda: future, timeout)
 
@@ -104,14 +107,14 @@ class Kernel:
 
                 response_message = json_decode(response_message)
 
-                print('Received message from kernel')
-                pprint(response_message)
+                #print('Received message from kernel')
+                #pprint(response_message)
 
                 response_message_id = response_message['parent_header']['msg_id']
                 response_message_type = response_message['msg_type']
 
                 if response_message_type == 'error':
-                    raise RuntimeError('ERROR: {}'.format(response_message))
+                    raise RuntimeError('ERROR: {}:{}'.format(response_message['content']['ename'], response_message['content']['evalue']))
 
                 if response_message_type == 'stream':
                     response_type = 'text'
@@ -145,14 +148,14 @@ class Kernel:
         return '\n'.join(response)
 
 
-launcher = KernelLauncher('lresende-elyra:8888')
-kernel = launcher.launch('spark_python_yarn_cluster')
-try:
-    #response = kernel.execute('1 + 1')
-    #pprint (response)
-    response = kernel.execute('print("Hello World")')
-    pprint (response)
-finally:
-    launcher.shutdown(kernel.kernel_id)
-
+# launcher = KernelLauncher('lresende-elyra:8888')
+# kernel = launcher.launch('spark_python_yarn_cluster')
+# try:
+#     #response = kernel.execute('1 + 1')
+#     #pprint (response)
+#     response = kernel.execute('print("Hello World")')
+#     pprint (response)
+# finally:
+#     launcher.shutdown(kernel.kernel_id)
+#
 
